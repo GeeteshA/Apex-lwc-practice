@@ -3,54 +3,51 @@ import getAccounts from '@salesforce/apex/AccountContactController.getAccounts';
 import getContactsByAccount from '@salesforce/apex/AccountContactController.getContactsByAccount';
 
 export default class AccountContactViewer extends LightningElement {
-    @track accounts = [];
-    @track contacts = [];
-    @track selectedAccountName = '';
-    @track selectedContact = {};
+    @track accounts;
+    @track selectedContacts;
+    @track modalContact;
     @track showModal = false;
 
-    accountColumns = [
+    columns = [
         { label: 'Account Name', fieldName: 'Name' },
-        {
-            type: 'button',
-            typeAttributes: {
-                label: 'View Contacts',
-                name: 'view_contacts',
-                variant: 'brand'
-            }
-        }
+        { type: 'button', typeAttributes: { label: 'View Contacts', name: 'view' } }
+    ];
+
+    contactColumns = [
+        { label: 'First Name', fieldName: 'FirstName' },
+        { label: 'Last Name', fieldName: 'LastName' },
+        { label: 'Email', fieldName: 'Email' },
+        { label: 'Phone', fieldName: 'Phone' },
+        { type: 'button', typeAttributes: { label: 'View', name: 'view_contact' } }
     ];
 
     @wire(getAccounts)
     wiredAccounts({ data, error }) {
         if (data) {
             this.accounts = data;
-        } else if (error) {
-            console.error('Error fetching accounts:', error);
+        } else {
+            console.error(error);
         }
     }
 
-    handleAccountSelect(event) {
-        const row = event.detail.row;
-        this.selectedAccountName = row.Name;
-
-        getContactsByAccount({ accountId: row.Id })
+    handleRowAction(event) {
+        const accountId = event.detail.row.Id;
+        getContactsByAccount({ accountId })
             .then(result => {
-                this.contacts = result;
+                this.selectedContacts = result;
             })
             .catch(error => {
-                console.error('Error fetching contacts:', error);
+                console.error(error);
             });
     }
 
-    handleContactClick(event) {
-        const contactId = event.target.dataset.id;
-        const contact = this.contacts.find(c => c.Id === contactId);
-        this.selectedContact = contact;
+    handleContactModal(event) {
+        this.modalContact = event.detail.row;
         this.showModal = true;
     }
 
     closeModal() {
         this.showModal = false;
+        this.modalContact = null;
     }
 }

@@ -8,7 +8,10 @@
                         label="Email"
                         value={searchTerm}
                         onchange={handleSearchChange}
-                        placeholder="Enter email address">
+                        placeholder="Enter email address"
+                        message-when-too-short="Enter at least 2 characters"
+                        min-length="2"
+                        required>
                     </lightning-input>
                 </div>
                 <div class="slds-col slds-size_1-of-4 slds-align_absolute-center">
@@ -16,8 +19,8 @@
                         label="Search" 
                         variant="brand" 
                         onclick={handleSearch}
-                        disabled={!searchTerm}
-                        >
+                        disabled={isSearchDisabled}
+                        title={searchButtonTitle}>
                     </lightning-button>
                 </div>
             </div>

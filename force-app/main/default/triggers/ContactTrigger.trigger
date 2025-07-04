@@ -1,5 +1,16 @@
-trigger ContactTrigger on Contact (after insert, after delete, after undelete) {
-    if (Trigger.isAfter && (Trigger.isInsert || Trigger.isDelete || Trigger.isUndelete)) {
-        ContactTriggerHandler.updateContactCountOnAccount(Trigger.new, Trigger.old, Trigger.isInsert, Trigger.isDelete, Trigger.isUndelete);
+trigger ContactTrigger on Contact (
+    after insert, 
+    after update, 
+    after delete, 
+    after undelete
+) {
+    if (Trigger.isAfter) {
+        ContactTriggerHandler.updateContactCount(
+            Trigger.isDelete ? Trigger.old : Trigger.new,
+            Trigger.isInsert,
+            Trigger.isDelete,
+            Trigger.isUndelete
+        );
     }
 }
+

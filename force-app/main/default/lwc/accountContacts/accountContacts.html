@@ -1,0 +1,30 @@
+<template>
+    <lightning-card title="Account Contacts Viewer">
+        <div class="slds-p-around_medium">
+            <lightning-datatable
+                data={accounts}
+                columns={accountColumns}
+                key-field="Id"
+                onrowaction={handleAccountSelect}>
+            </lightning-datatable>
+
+            <template if:true={contacts.length}>
+                <h3 class="slds-m-top_medium">Contacts</h3>
+                <div class="slds-grid slds-wrap">
+                    <template for:each={contacts} for:item="contact">
+                        <div key={contact.Id} class="slds-col slds-size_1-of-3">
+                            <lightning-card onclick={openModal} data-id={contact.Id}>
+                                <p>{contact.Name}</p>
+                                <p>{contact.Email}</p>
+                            </lightning-card>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+
+    <template if:true={showModal}>
+        <c-contact-modal contact={selectedContact} onclose={closeModal}></c-contact-modal>
+    </template>
+</template>

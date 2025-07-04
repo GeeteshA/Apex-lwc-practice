@@ -2,28 +2,59 @@ import { LightningElement, wire, track } from 'lwc';
 import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 import getContacts from '@salesforce/apex/AccountController.getContacts';
 
+const ACCOUNT_COLUMNS = [
+    { label: 'Name', fieldName: 'Name', type: 'text' },
+    { label: 'Industry', fieldName: 'Industry', type: 'text' },
+    { label: 'Phone', fieldName: 'Phone', type: 'phone' },
+    { 
+        type: 'button', 
+        typeAttributes: {
+            label: 'View Contacts',
+            name: 'view_contacts',
+            title: 'View Contacts',
+            disabled: false,
+            value: 'view'
+        }
+    }
+];
+
 export default class AccountContacts extends LightningElement {
+    accountColumns = ACCOUNT_COLUMNS;
     @track accounts = [];
     @track contacts = [];
     @track selectedAccountId;
     @track showModal = false;
     @track selectedContact;
+    error;
 
     @wire(getAccounts)
     wiredAccounts({ error, data }) {
-        if (data) this.accounts = data;
-        else if (error) console.error(error);
+        if (data) {
+            this.accounts = data;
+            this.error = undefined;
+        } else if (error) {
+            this.error = error;
+            this.accounts = [];
+        }
     }
 
     handleAccountSelect(event) {
-        this.selectedAccountId = event.detail;
+        this.selectedAccountId = event.detail.row.Id;
         getContacts({ accountId: this.selectedAccountId })
-            .then(result => this.contacts = result)
-            .catch(error => console.error(error));
+            .then(result => {
+                this.contacts = result;
+                this.error = undefined;
+            })
+            .catch(error => {
+                this.error = error;
+                this.contacts = [];
+            });
     }
 
     openModal(event) {
-        this.selectedContact = this.contacts.find(c => c.Id === event.currentTarget.dataset.id);
+        this.selectedContact = this.contacts.find(
+            contact => contact.Id === event.currentTarget.dataset.id
+        );
         this.showModal = true;
     }
 
@@ -31,72 +62,3 @@ export default class AccountContacts extends LightningElement {
         this.showModal = false;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { LightningElement, wire, track } from 'lwc';
-// import getAccounts from '@salesforce/apex/AccountContactController.getAccounts';
-// import getContactsByAccount from '@salesforce/apex/AccountContactController.getContactsByAccount';
-
-// export default class AccountContactViewer extends LightningElement {
-//     @track accounts;
-//     @track selectedContacts;
-//     @track modalContact;
-//     @track showModal = false;
-
-//     columns = [
-//         { label: 'Account Name', fieldName: 'Name' },
-//         { type: 'button', typeAttributes: { label: 'View Contacts', name: 'view' } }
-//     ];
-
-//     contactColumns = [
-//         { label: 'First Name', fieldName: 'FirstName' },
-//         { label: 'Last Name', fieldName: 'LastName' },
-//         { label: 'Email', fieldName: 'Email' },
-//         { label: 'Phone', fieldName: 'Phone' },
-//         { type: 'button', typeAttributes: { label: 'View', name: 'view_contact' } }
-//     ];
-
-//     @wire(getAccounts)
-//     wiredAccounts({ data, error }) {
-//         if (data) {
-//             this.accounts = data;
-//         } else {
-//             console.error(error);
-//         }
-//     }
-
-//     handleRowAction(event) {
-//         const accountId = event.detail.row.Id;
-//         getContactsByAccount({ accountId })
-//             .then(result => {
-//                 this.selectedContacts = result;
-//             })
-//             .catch(error => {
-//                 console.error(error);
-//             });
-//     }
-
-//     handleContactModal(event) {
-//         this.modalContact = event.detail.row;
-//         this.showModal = true;
-//     }
-
-//     closeModal() {
-//         this.showModal = false;
-//         this.modalContact = null;
-//     }
-// }

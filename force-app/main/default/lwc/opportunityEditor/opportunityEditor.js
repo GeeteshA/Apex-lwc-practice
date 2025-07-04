@@ -1,41 +1,75 @@
 import { LightningElement, wire, track } from 'lwc';
 import getOpportunities from '@salesforce/apex/OpportunityController.getOpportunities';
 import saveOpportunities from '@salesforce/apex/OpportunityController.saveOpportunities';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-const columns = [
+const COLUMNS = [
     { label: 'Name', fieldName: 'Name', type: 'text' },
+    { label: 'Account', fieldName: 'AccountName', type: 'text' },
+    { label: 'Stage', fieldName: 'StageName', type: 'text' },
     { label: 'Amount', fieldName: 'Amount', type: 'currency', editable: true },
-    { label: 'Close Date', fieldName: 'CloseDate', type: 'date', editable: true }
+    { 
+        label: 'Close Date', 
+        fieldName: 'CloseDate', 
+        type: 'date-local', 
+        editable: true,
+        typeAttributes: {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        }
+    }
 ];
 
 export default class OpportunityEditor extends LightningElement {
+    columns = COLUMNS;
     @track opportunities = [];
-    @track columns = columns;
     @track draftValues = [];
+    @track error;
 
     @wire(getOpportunities)
-    wiredOpps({ error, data }) {
-        if (data) this.opportunities = data;
-        else if (error) console.error(error);
+    wiredOpportunities({ error, data }) {
+        if (data) {
+            this.opportunities = data.map(opp => ({
+                ...opp,
+                AccountName: opp.Account ? opp.Account.Name : ''
+            }));
+            this.error = undefined;
+        } else if (error) {
+            this.error = error;
+            this.opportunities = [];
+        }
     }
 
     handleSave(event) {
         this.draftValues = event.detail.draftValues;
-        saveOpportunities({ opps: this.draftValues })
+        
+        // Prepare data for saving
+        const records = this.draftValues.map(draft => {
+            const fields = Object.assign({}, draft);
+            return { fields };
+        });
+
+        saveOpportunities({ opportunities: records })
             .then(() => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Success',
-                    message: 'Opportunities updated',
-                    variant: 'success'
-                }));
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Opportunities updated successfully',
+                        variant: 'success'
+                    })
+                );
                 this.draftValues = [];
+                return getOpportunities();
+            })
+            .then(result => {
+                this.opportunities = result.map(opp => ({
+                    ...opp,
+                    AccountName: opp.Account ? opp.Account.Name : ''
+                }));
             })
             .catch(error => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body.message,
-                    variant: 'error'
-                }));
+                this.error = error.body.message;
             });
     }
 }

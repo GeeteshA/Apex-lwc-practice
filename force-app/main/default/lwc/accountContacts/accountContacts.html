@@ -1,21 +1,31 @@
 <template>
-    <lightning-card title="Account Contacts Viewer">
+    <lightning-card title="Account Contacts" icon-name="standard:account">
         <div class="slds-p-around_medium">
             <lightning-datatable
                 data={accounts}
                 columns={accountColumns}
                 key-field="Id"
-                onrowaction={handleAccountSelect}>
+                onrowaction={handleAccountSelect}
+                hide-checkbox-column>
             </lightning-datatable>
 
             <template if:true={contacts.length}>
-                <h3 class="slds-m-top_medium">Contacts</h3>
-                <div class="slds-grid slds-wrap">
+                <h2 class="slds-text-heading_medium slds-m-top_medium">Contacts</h2>
+                <div class="slds-grid slds-wrap slds-m-top_small">
                     <template for:each={contacts} for:item="contact">
-                        <div key={contact.Id} class="slds-col slds-size_1-of-3">
-                            <lightning-card onclick={openModal} data-id={contact.Id}>
-                                <p>{contact.Name}</p>
-                                <p>{contact.Email}</p>
+                        <div key={contact.Id} class="slds-col slds-size_1-of-3 slds-p-around_x-small">
+                            <lightning-card 
+                                title={contact.Name} 
+                                onclick={openModal} 
+                                data-id={contact.Id}>
+                                <p class="slds-p-horizontal_small">
+                                    <lightning-icon icon-name="utility:email" size="small"></lightning-icon>
+                                    {contact.Email}
+                                </p>
+                                <p class="slds-p-horizontal_small">
+                                    <lightning-icon icon-name="utility:phone" size="small"></lightning-icon>
+                                    {contact.Phone}
+                                </p>
                             </lightning-card>
                         </div>
                     </template>

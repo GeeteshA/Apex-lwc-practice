@@ -1,5 +1,7 @@
 trigger LeadTrigger on Lead (before insert, before update) {
-    if (Trigger.isBefore && (Trigger.isInsert || Trigger.isUpdate)) {
-        LeadTriggerHandler.preventDuplicateEmails(Trigger.new, Trigger.isInsert, Trigger.isUpdate);
+    if(Trigger.isBefore) {
+        if(Trigger.isInsert) LeadTriggerHandler.onBeforeInsert(Trigger.new);
+        if(Trigger.isUpdate) LeadTriggerHandler.onBeforeUpdate(Trigger.new, Trigger.oldMap);
     }
 }
+

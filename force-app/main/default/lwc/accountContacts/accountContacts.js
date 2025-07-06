@@ -1,6 +1,7 @@
 import { LightningElement, wire, track } from 'lwc';
 import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 import getContacts from '@salesforce/apex/AccountController.getContacts';
+import contactModal from 'c/contactModal';  // Correct import
 
 const ACCOUNT_COLUMNS = [
     { label: 'Name', fieldName: 'Name', type: 'text' },

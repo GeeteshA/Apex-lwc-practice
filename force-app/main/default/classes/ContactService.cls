@@ -1,6 +1,7 @@
 public with sharing class ContactService {
-    // Updates contact counts on Accounts
-    // Scenario: Maintain Number_of_Contacts__c field
+    // Constants
+    private static final String CONTACT_COUNT_FIELD = 'Number_of_Contacts__c';
+
     public static void updateContactCounts(List<Contact> contacts) {
         Set<Id> accountIds = new Set<Id>();
         for(Contact con : contacts) {
@@ -8,14 +9,20 @@ public with sharing class ContactService {
         }
         if(accountIds.isEmpty()) return;
         
-        Map<Id, Integer> counts = ContactFactory.getContactCountsByAccountIds(accountIds);
+        // Get contact counts
+        List<AggregateResult> aggResults = ContactFactory.getContactCountsByAccountIds(accountIds);
+        Map<Id, Integer> counts = new Map<Id, Integer>();
+        for(Id accId : accountIds) counts.put(accId, 0);
+        for(AggregateResult ar : aggResults) {
+            counts.put((Id)ar.get('AccountId'), (Integer)ar.get('total'));
+        }
         
-        // Update Accounts
+        // Update accounts
         List<Account> accountsToUpdate = new List<Account>();
         for(Id accountId : counts.keySet()) {
             accountsToUpdate.add(new Account(
                 Id = accountId,
-                Number_of_Contacts__c = counts.get(accountId) // Update the custom field
+                Number_of_Contacts__c = counts.get(accountId)
             ));
         }
         update accountsToUpdate;

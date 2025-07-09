@@ -17,7 +17,14 @@
                     </div>
                     <div class="slds-col slds-size_1-of-2">
                         <p><strong>Account:</strong> {contact.Account.Name}</p>
-                        <p><strong>Created Date:</strong> {contact.CreatedDate}</p>
+                        <p><strong>Created Date:</strong> 
+                            <lightning-formatted-date-time 
+                                value={contact.CreatedDate} 
+                                year="numeric" 
+                                month="short" 
+                                day="2-digit">
+                            </lightning-formatted-date-time>
+                        </p>
                     </div>
                 </div>
             </div>

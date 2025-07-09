@@ -1,4 +1,6 @@
 public with sharing class LeadService {
+    private static final String DUPLICATE_EMAIL_ERROR = 'A Lead with this email already exists.';
+
     public static void preventDuplicateEmails(List<Lead> leads, Map<Id, Lead> oldMap) {
         Set<String> emails = new Set<String>();
         for(Lead lead : leads) {
@@ -7,17 +9,23 @@ public with sharing class LeadService {
             }
         }
         if(emails.isEmpty()) return;
-        // Check for existing Leads
-        Map<String, Lead> existingLeads = LeadFactory.getLeadsByEmails(emails);
-        // Add error if duplicate found
+        
+        // Now using the Map version
+        Map<String, Lead> existingLeads = LeadFactory.getLeadsByEmailsMap(emails);
+
         for(Lead lead : leads) {
             if(lead.Email != null) {
                 String emailKey = lead.Email.toLowerCase();
                 if(existingLeads.containsKey(emailKey) && 
                    (oldMap == null || lead.Id != existingLeads.get(emailKey).Id)) {
-                    lead.addError('A Lead with this email already exists.');
+                    lead.addError(DUPLICATE_EMAIL_ERROR);
                 }
             }
         }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Lead> searchByEmail(String email) {
+        return LeadFactory.getLeadsByEmail(email);
     }
 }

@@ -1,7 +1,7 @@
 import { LightningElement, wire, track } from 'lwc';
 import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 import getContacts from '@salesforce/apex/AccountController.getContacts';
-import contactModal from 'c/contactModal';  // Correct import
+import contactModal from 'c/contactModal';
 
 const ACCOUNT_COLUMNS = [
     { label: 'Name', fieldName: 'Name', type: 'text' },
@@ -22,7 +22,7 @@ const ACCOUNT_COLUMNS = [
 export default class AccountContacts extends LightningElement {
     accountColumns = ACCOUNT_COLUMNS;
     @track accounts = [];
-    @track contacts = [];
+    @track contacts;
     @track selectedAccountId;
     @track showModal = false;
     @track selectedContact;
@@ -41,20 +41,23 @@ export default class AccountContacts extends LightningElement {
 
     handleAccountSelect(event) {
         this.selectedAccountId = event.detail.row.Id;
-        getContacts({ accountId: this.selectedAccountId })
-            .then(result => {
-                this.contacts = result;
-                this.error = undefined;
-            })
-            .catch(error => {
-                this.error = error;
-                this.contacts = [];
-            });
+        this.loadContacts();
+    }
+
+    async loadContacts() {
+        try {
+            this.contacts = await getContacts({ accountId: this.selectedAccountId });
+            this.error = undefined;
+        } catch (error) {
+            this.error = error.body.message;
+            this.contacts = undefined;
+        }
     }
 
     openModal(event) {
+        const contactId = event.currentTarget.dataset.contactid;
         this.selectedContact = this.contacts.find(
-            contact => contact.Id === event.currentTarget.dataset.id
+            contact => contact.Id === contactId
         );
         this.showModal = true;
     }

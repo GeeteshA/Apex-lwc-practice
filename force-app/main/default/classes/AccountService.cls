@@ -10,5 +10,13 @@ public with sharing class AccountService {
         }
         insert contacts;
     }
-
+    // LWC 
+    @AuraEnabled(cacheable=true)
+    public static List<Account> getAccounts() {
+        return AccountFactory.getAccounts();
+    }
+    @AuraEnabled(cacheable=true)
+    public static List<Contact> getContacts(Id accountId) {
+        return AccountFactory.getContactsByAccountId(accountId);
+    }
 }

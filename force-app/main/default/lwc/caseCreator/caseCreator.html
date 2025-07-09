@@ -1,7 +1,10 @@
 <template>
     <lightning-card title="Create New Case" icon-name="standard:case">
         <div class="slds-p-around_medium">
-            <lightning-record-edit-form object-api-name="Case" onsuccess={handleSuccess}>
+          <lightning-record-edit-form 
+                object-api-name="Case" 
+                onsuccess={handleSuccess}
+                onerror={handleError}>
                 <div class="slds-grid slds-wrap">
                     <div class="slds-col slds-size_1-of-1">
                         <lightning-input-field field-name="Subject" required></lightning-input-field>

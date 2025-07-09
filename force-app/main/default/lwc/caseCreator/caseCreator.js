@@ -10,8 +10,16 @@ export default class CaseCreator extends LightningElement {
                 variant: 'success'
             })
         );
-        
-        // Reset form
         this.template.querySelector('lightning-record-edit-form').reset();
+    }
+
+    handleError(event) {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Error creating case',
+                message: event.detail.message,
+                variant: 'error'
+            })
+        );
     }
 }

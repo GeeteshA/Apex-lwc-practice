@@ -25,4 +25,23 @@ public with sharing class AccountFactory {
             GROUP BY AccountId
         ];
     }
+    
+    // For Batch: Get inactive candidates
+    public static List<Account> getInactiveAccounts(Date cutoffDate) {
+        return [
+            SELECT Id, Inactive__c 
+            FROM Account 
+            WHERE LastModifiedDate <= :cutoffDate
+            AND Inactive__c = false
+        ];
+    }
+    // For Batch: Returns QueryLocator
+    public static Database.QueryLocator getInactiveAccountsQueryLocator(Date cutoffDate) {
+        return Database.getQueryLocator([
+            SELECT Id, Inactive__c 
+            FROM Account 
+            WHERE LastModifiedDate <= :cutoffDate
+            AND Inactive__c = false
+        ]);
+    }
 }

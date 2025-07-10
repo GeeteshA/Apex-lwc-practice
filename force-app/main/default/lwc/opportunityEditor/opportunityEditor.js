@@ -40,36 +40,74 @@ export default class OpportunityEditor extends LightningElement {
             this.opportunities = [];
         }
     }
-
     handleSave(event) {
-        this.draftValues = event.detail.draftValues;
-        
-        // Prepare data for saving
-        const records = this.draftValues.map(draft => {
-            const fields = Object.assign({}, draft);
-            return { fields };
-        });
+    this.draftValues = event.detail.draftValues;
+    
+    // Create array of fields to update
+    const records = this.draftValues.map(draft => {
+        return {
+            fields: {
+                Id: draft.Id,
+                Amount: draft.Amount,
+                CloseDate: draft.CloseDate
+            }
+        };
+    });
 
-        saveOpportunities({ opportunities: records })
-            .then(() => {
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Success',
-                        message: 'Opportunities updated successfully',
-                        variant: 'success'
-                    })
-                );
-                this.draftValues = [];
-                return getOpportunities();
-            })
-            .then(result => {
-                this.opportunities = result.map(opp => ({
-                    ...opp,
-                    AccountName: opp.Account ? opp.Account.Name : ''
-                }));
-            })
-            .catch(error => {
-                this.error = error.body.message;
-            });
-    }
+    saveOpportunities({ opportunities: records })
+        .then(() => {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Success',
+                    message: 'Opportunities updated successfully',
+                    variant: 'success'
+                })
+            );
+            this.draftValues = [];
+            
+            // Refresh data
+            return getOpportunities();
+        })
+        .then(result => {
+            this.opportunities = result.map(opp => ({
+                ...opp,
+                AccountName: opp.Account ? opp.Account.Name : ''
+            }));
+        })
+        .catch(error => {
+            this.error = error.body.message;
+        });
+}
+
+    // handleSave(event) {
+    //     this.draftValues = event.detail.draftValues;
+        
+    //     // Prepare data for saving
+    //     const records = this.draftValues.map(draft => {
+    //         const fields = Object.assign({}, draft);
+    //         return { fields };
+    //     });
+
+    //     saveOpportunities({ opportunities: records })
+    //         .then(() => {
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: 'Success',
+    //                     message: 'Opportunities updated successfully',
+    //                     variant: 'success'
+    //                 })
+    //             );
+    //             this.draftValues = [];
+    //             return getOpportunities();
+    //         })
+    //         .then(result => {
+    //             this.opportunities = result.map(opp => ({
+    //                 ...opp,
+    //                 AccountName: opp.Account ? opp.Account.Name : ''
+    //             }));
+    //         })
+    //         .catch(error => {
+    //             this.error = error.body.message;
+    //         });
+    // }
 }

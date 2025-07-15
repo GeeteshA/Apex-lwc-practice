@@ -2,8 +2,8 @@ public with sharing class CaseReminderBatch implements Database.Batchable<sObjec
     private final Date cutoffDate;
 
     public CaseReminderBatch() {
-        this.cutoffDate = Date.today().addDays(-7);
-        // this.cutoffDate = Date.today(); 
+        // this.cutoffDate = Date.today().addDays(-7);
+        this.cutoffDate = Date.today();
         
     }
 

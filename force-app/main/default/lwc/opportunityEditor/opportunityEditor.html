@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <lightning-card title="Opportunity Editor" icon-name="standard:opportunity">
         <div class="slds-p-around_medium">
             <lightning-datatable
@@ -19,6 +19,20 @@
                     <h2>{error}</h2>
                 </div>
             </template>
+        </div>
+    </lightning-card>
+</template> -->
+<template>
+    <lightning-card title="Opportunity Inline Editor" icon-name="standard:opportunity">
+        <div class="slds-p-around_medium">
+            <lightning-datatable
+                key-field="Id"
+                data={opportunities}
+                columns={columns}
+                draft-values={draftValues}
+                onsave={handleSave}
+                hide-checkbox-column>
+            </lightning-datatable>
         </div>
     </lightning-card>
 </template>

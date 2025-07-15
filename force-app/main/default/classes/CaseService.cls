@@ -15,10 +15,10 @@ public with sharing class CaseService {
     }
     
     // Batch: Send reminder emails
-    public static void sendReminderEmails(List<Case> cases) {
+  public static void sendReminderEmails(List<Case> cases) {
         List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
         EmailTemplate template = [SELECT Id FROM EmailTemplate WHERE DeveloperName = 'Case_Reminder' LIMIT 1];
-        
+
         for (Case c : cases) {
             if (c.Owner.Email != null) {
                 Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
@@ -29,6 +29,7 @@ public with sharing class CaseService {
                 emails.add(mail);
             }
         }
+
         if (!emails.isEmpty()) Messaging.sendEmail(emails);
     }
 }

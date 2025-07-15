@@ -1,12 +1,31 @@
 public with sharing class OpportunityFactory {
     // For trigger use
+    // public static List<Opportunity> getOpportunitiesByCloseDates(Set<Id> accountIds, Set<Date> closeDates) {
+    //     return [
+    //         SELECT Id, StageName, AccountId
+    //         FROM Opportunity
+    //         WHERE AccountId IN :accountIds
+    //         AND CloseDate IN :closeDates
+    //         AND StageName IN ('Closed Won', 'Closed Lost')
+    //     ];
+    // }
+        // Get latest CloseDate for each Account
+    public static List<AggregateResult> getLatestOpportunityDates(Set<Id> accountIds) {
+        return [
+            SELECT AccountId, MAX(CloseDate) maxDate
+            FROM Opportunity
+            WHERE AccountId IN :accountIds
+            GROUP BY AccountId
+        ];
+    }
+
+    // Get Opportunities with those max CloseDates
     public static List<Opportunity> getOpportunitiesByCloseDates(Set<Id> accountIds, Set<Date> closeDates) {
         return [
             SELECT Id, StageName, AccountId
             FROM Opportunity
             WHERE AccountId IN :accountIds
             AND CloseDate IN :closeDates
-            AND StageName IN ('Closed Won', 'Closed Lost')
         ];
     }
 

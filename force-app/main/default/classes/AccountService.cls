@@ -10,17 +10,13 @@ public with sharing class AccountService {
         }
         insert contacts;
     }
-    // Batch: Mark accounts as inactive
-    public static void markAccountsInactive(List<Account> accounts) {
-        List<Account> toUpdate = new List<Account>();
-        for (Account acc : accounts) {
-            toUpdate.add(new Account(
-                Id = acc.Id,
-                Inactive__c = true // Now valid after field creation
-            ));
-        }
-        update toUpdate;
-    }
+//     // Batch: Mark accounts as inactive
+//  public static void markAccountsInactive(List<Account> accounts) {
+//         for (Account acc : accounts) {
+//             acc.Inactive__c = true;
+//         }
+//         update accounts;
+//     }
     // LWC 
     @AuraEnabled(cacheable=true)
     public static List<Account> getAccounts() {

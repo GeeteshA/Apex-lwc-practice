@@ -26,22 +26,16 @@ public with sharing class AccountFactory {
         ];
     }
     
-    // For Batch: Get inactive candidates
-    public static List<Account> getInactiveAccounts(Date cutoffDate) {
-        return [
-            SELECT Id, Inactive__c 
-            FROM Account 
-            WHERE LastModifiedDate <= :cutoffDate
-            AND Inactive__c = false
-        ];
-    }
+
     // For Batch: Returns QueryLocator
     public static Database.QueryLocator getInactiveAccountsQueryLocator(Date cutoffDate) {
+        System.debug('🔍 Cutoff date used: ' + cutoffDate);
         return Database.getQueryLocator([
-            SELECT Id, Inactive__c 
-            FROM Account 
-            WHERE LastModifiedDate <= :cutoffDate
+            SELECT Id, Name, Last_Modified_Custom__c, Inactive__c
+            FROM Account
+            WHERE Last_Modified_Custom__c <= :cutoffDate
             AND Inactive__c = false
         ]);
     }
+
 }

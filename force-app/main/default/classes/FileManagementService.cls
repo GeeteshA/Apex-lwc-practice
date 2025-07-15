@@ -1,6 +1,6 @@
-public with sharing class FileController {
+public with sharing class FileManagementService {
     @AuraEnabled(cacheable=true)
     public static List<ContentDocumentLink> getFiles(Id caseId) {
-        return FileManagementService.getFiles(caseId);
+        return FileFactory.getFiles(caseId);
     }
 }

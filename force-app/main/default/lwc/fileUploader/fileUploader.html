@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <lightning-card title="Case File Uploader" icon-name="standard:file">
         <div class="slds-p-around_medium">
             <div class="slds-m-bottom_medium">
@@ -30,6 +30,35 @@
                     </span>
                     <h2>No files uploaded yet.</h2>
                 </div>
+            </template>
+        </div>
+    </lightning-card>
+</template> -->
+<!-- fileUploader.html -->
+<template>
+    <lightning-card title="Case Files" icon-name="standard:file">
+        <div class="slds-p-around_medium">
+            <lightning-file-upload
+                label="Upload Files"
+                accept={acceptedFormats}
+                record-id={recordId}
+                multiple
+                onuploadfinished={handleUploadFinished}>
+            </lightning-file-upload>
+            
+            <div if:true={isLoading} class="slds-m-top_medium">
+                <lightning-spinner size="small"></lightning-spinner>
+            </div>
+            
+            <template if:true={files.length}>
+                <h2 class="slds-text-heading_small slds-m-top_medium">Uploaded Files</h2>
+                <ul class="slds-list_dotted slds-m-top_small">
+                    <template for:each={files} for:item="file">
+                        <li key={file.Id}>
+                            <a href={file.Link} target="_blank">{file.Title}</a> ({file.FileType})
+                        </li>
+                    </template>
+                </ul>
             </template>
         </div>
     </lightning-card>

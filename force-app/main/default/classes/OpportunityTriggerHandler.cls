@@ -1,18 +1,18 @@
-// public with sharing class OpportunityTriggerHandler {
-//     public static void onAfterInsert(List<Opportunity> newOpps) {
-//         OpportunityService.syncStageToAccount(newOpps, null);
-//     }
-    
-//     public static void onAfterUpdate(List<Opportunity> updatedOpps, Map<Id, Opportunity> oldMap) {
-//         OpportunityService.syncStageToAccount(updatedOpps, oldMap);
-//     }
-// }
 public with sharing class OpportunityTriggerHandler {
+    // recursion prevention
+    private static Boolean alreadyProcessed = false;
+    
     public static void onAfterInsert(List<Opportunity> newOpps) {
-        OpportunityService.syncStageToAccount(newOpps);
+        if (!alreadyProcessed) {
+            alreadyProcessed = true;
+            OpportunityService.syncStageToAccount(newOpps);
+        }
     }
 
     public static void onAfterUpdate(List<Opportunity> updatedOpps) {
-        OpportunityService.syncStageToAccount(updatedOpps);
+        if (!alreadyProcessed) {
+            alreadyProcessed = true;
+            OpportunityService.syncStageToAccount(updatedOpps);
+        }
     }
 }

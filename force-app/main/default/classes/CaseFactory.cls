@@ -10,8 +10,7 @@ public with sharing class CaseFactory {
     }
     // For Batch: Returns QueryLocator
     public static Database.QueryLocator getStaleOpenCasesQueryLocator(Date cutoffDate) {
-                System.debug('⚙️ Inside CaseFactory with date: ' + cutoffDate);
-
+        System.debug('⚙️ Inside CaseFactory with date: ' + cutoffDate);
         return Database.getQueryLocator([
             SELECT Id, CaseNumber, Subject, OwnerId, Owner.Email
             FROM Case 

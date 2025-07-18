@@ -17,5 +17,33 @@ OpportunityTriggerHandler.cls
 TaskService.cls
 TaskTriggerHandler.cls
 
-
+sf project deploy start -d force-app/main/default/classes
+sf project deploy start -d force-app/main/default/triggers
 sf project deploy start -d force-app/main/default/lwc
+
+
+
+    @IsTest
+    static void testBulkContactOperations() {
+        // Create test account
+        Account testAccount = new Account(Name = 'Bulk Test Account');
+        insert testAccount;
+        
+        // Create 200 contacts
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i = 1; i <= 200; i++) {
+            contacts.add(new Contact(
+                FirstName = 'Bulk',
+                LastName = 'Contact ' + i,
+                AccountId = testAccount.Id
+            ));
+        }
+        
+        Test.startTest();
+        insert contacts;
+        Test.stopTest();
+        
+        // Verify bulk insert count
+        Account afterBulkInsert = [SELECT Number_of_Contacts__c FROM Account WHERE Id = :testAccount.Id];
+        System.assertEquals(200, afterBulkInsert.Number_of_Contacts__c, 'Should handle bulk insert');
+    }

@@ -16,6 +16,7 @@ public with sharing class OpportunityFactory {
             FROM Opportunity
             WHERE AccountId IN :accountIds
             AND CloseDate IN :closeDates
+            AND StageName IN ('Closed Won', 'Closed Lost') // added
         ];
     }
 

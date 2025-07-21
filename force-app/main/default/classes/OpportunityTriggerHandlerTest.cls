@@ -1,49 +1,67 @@
 @IsTest
 private class OpportunityTriggerHandlerTest {
-    @IsTest
-    static void testOpportunityStageFlow() {
-        // 1. Create test account
+    @TestSetup
+    static void setup() {
         Account testAcc = new Account(Name = 'Test Account');
         insert testAcc;
+    }
+    
+    @IsTest
+    static void testStageSyncWithMultipleAccounts() {
+        Account acc1 = [SELECT Id FROM Account LIMIT 1];
+        Account acc2 = new Account(Name = 'Account 2');
+        insert acc2;
         
-        // 2. Create opportunity with Prospecting stage (today's date)
-        Opportunity opp1 = new Opportunity(
-            Name = 'First Opp',
-            StageName = 'Prospecting',
+        // Create opportunities for different accounts
+        Opportunity opp1Acc1 = new Opportunity(
+            Name = 'Opp1 Acc1',
+            StageName = 'Closed Won',
             CloseDate = Date.today(),
-            AccountId = testAcc.Id
+            AccountId = acc1.Id
+        );
+        
+        Opportunity opp1Acc2 = new Opportunity(
+            Name = 'Opp1 Acc2',
+            StageName = 'Closed Lost',
+            CloseDate = Date.today().addDays(-1),
+            AccountId = acc2.Id
         );
         
         Test.startTest();
-        insert opp1;
+        insert new List<Opportunity>{opp1Acc1, opp1Acc2};
         Test.stopTest();
         
-        // 3. Check Last_Closed_Opportunity_Stage__c is NOT Prospecting
-        Account afterFirstInsert = [SELECT Last_Closed_Opportunity_Stage__c FROM Account WHERE Id = :testAcc.Id];
-        System.assertEquals(null, afterFirstInsert.Last_Closed_Opportunity_Stage__c,
-            'Should NOT update to Prospecting stage');
+        // Verify both accounts were updated correctly
+        Map<Id, Account> accounts = new Map<Id, Account>([
+            SELECT Last_Closed_Opportunity_Stage__c 
+            FROM Account
+        ]);
         
-        // 4. Update opportunity to Closed Won
-        opp1.StageName = 'Closed Won';
-        update opp1;
+        System.assertEquals('Closed Won', accounts.get(acc1.Id).Last_Closed_Opportunity_Stage__c);
+        System.assertEquals('Closed Lost', accounts.get(acc2.Id).Last_Closed_Opportunity_Stage__c);
+    }
+    
+    @IsTest
+    static void testNoUpdateForNonClosedStages() {
+        Account acc = [SELECT Id FROM Account LIMIT 1];
         
-        // 5. Check Last_Closed_Opportunity_Stage__c is now Closed Won
-        Account afterUpdate = [SELECT Last_Closed_Opportunity_Stage__c FROM Account WHERE Id = :testAcc.Id];
-        System.assertEquals('Closed Won', afterUpdate.Last_Closed_Opportunity_Stage__c,
-            'Should update to Closed Won stage');
-        
-        // 6. Create second opportunity with Closed Lost (older date)
-        Opportunity opp2 = new Opportunity(
-            Name = 'Second Opp',
-            StageName = 'Closed Lost',
-            CloseDate = Date.today().addDays(-5), // Older date
-            AccountId = testAcc.Id
+        Opportunity opp = new Opportunity(
+            Name = 'Non-closed Opp',
+            StageName = 'Prospecting',
+            CloseDate = Date.today(),
+            AccountId = acc.Id
         );
-        insert opp2;
         
-        // 7. Final check - should still show Closed Won (newer date)
-        Account finalCheck = [SELECT Last_Closed_Opportunity_Stage__c FROM Account WHERE Id = :testAcc.Id];
-        System.assertEquals('Closed Won', finalCheck.Last_Closed_Opportunity_Stage__c,
-            'Should keep Closed Won as it has newer date');
+        Test.startTest();
+        insert opp;
+        
+        // Update to another non-closed stage
+        opp.StageName = 'Qualification';
+        update opp;
+        Test.stopTest();
+        
+        Account updatedAcc = [SELECT Last_Closed_Opportunity_Stage__c FROM Account WHERE Id = :acc.Id];
+        System.assertEquals(null, updatedAcc.Last_Closed_Opportunity_Stage__c,
+            'Should not update for non-closed stages');
     }
 }

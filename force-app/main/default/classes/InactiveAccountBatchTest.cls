@@ -1,30 +1,48 @@
 @IsTest
 private class InactiveAccountBatchTest {
+    @TestSetup
+    static void setup() {
+        List<Account> accounts = new List<Account>{
+            new Account(Name = 'Active 1', Last_Modified_Custom__c = Date.today().addMonths(-1), Inactive__c = false),
+            new Account(Name = 'Active 2', Last_Modified_Custom__c = Date.today().addDays(-10), Inactive__c = false),
+            new Account(Name = 'Inactive 1', Last_Modified_Custom__c = Date.today().addYears(-3), Inactive__c = false),
+            new Account(Name = 'Inactive 2', Last_Modified_Custom__c = Date.today().addDays(-800), Inactive__c = false),
+            new Account(Name = 'Already Inactive', Last_Modified_Custom__c = Date.today().addYears(-5), Inactive__c = true)
+        };
+        insert accounts;
+    }
+    
     @IsTest
-    static void testInactiveAccountMarking() {
-        // Create test data
-        Account activeAccount = new Account(
-            Name = 'Active Account',
-            Last_Modified_Custom__c = Date.today().addMonths(-1), // Recently modified
-            Inactive__c = false
-        );
-        
-        Account inactiveAccount = new Account(
-            Name = 'Inactive Account',
-            Last_Modified_Custom__c = Date.today().addYears(-3), // Old modification
-            Inactive__c = false
-        );
-        insert new List<Account>{activeAccount, inactiveAccount};
-
+    static void testBatchMarkingLogic() {
         Test.startTest();
-        Database.executeBatch(new InactiveAccountBatch());
+        Database.executeBatch(new InactiveAccountBatch(), 200);
         Test.stopTest();
-
+        
         // Verify results
-        Account updatedActiveAcc = [SELECT Inactive__c FROM Account WHERE Id = :activeAccount.Id];
-        System.assertEquals(false, updatedActiveAcc.Inactive__c, 'Active account should remain active');
-
-        Account updatedInactiveAcc = [SELECT Inactive__c FROM Account WHERE Id = :inactiveAccount.Id];
-        System.assertEquals(true, updatedInactiveAcc.Inactive__c, 'Inactive account should be marked');
+        Map<String, Account> accountsByName = new Map<String, Account>();
+        for(Account a : [SELECT Name, Inactive__c FROM Account]) {
+            accountsByName.put(a.Name, a);
+        }
+        
+        // Active accounts should remain active
+        System.assertEquals(false, accountsByName.get('Active 1').Inactive__c);
+        System.assertEquals(false, accountsByName.get('Active 2').Inactive__c);
+        
+        // Inactive accounts should be marked
+        System.assertEquals(true, accountsByName.get('Inactive 1').Inactive__c);
+        System.assertEquals(true, accountsByName.get('Inactive 2').Inactive__c);
+        
+        // Already inactive should remain unchanged
+        System.assertEquals(true, accountsByName.get('Already Inactive').Inactive__c);
+    }
+    
+    @IsTest
+    static void testBatchScopeSize() {
+        Test.startTest();
+        Database.executeBatch(new InactiveAccountBatch(), 1); 
+        Test.stopTest();
+        
+        System.assertEquals(2, [SELECT COUNT() FROM Account WHERE Inactive__c = true AND Name LIKE 'Inactive%'],
+            'Should mark all inactive accounts regardless of batch size');
     }
 }

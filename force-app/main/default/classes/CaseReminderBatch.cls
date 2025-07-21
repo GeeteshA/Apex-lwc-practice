@@ -19,3 +19,5 @@ public with sharing class CaseReminderBatch implements Database.Batchable<sObjec
         System.debug('✅ Case Reminder Batch completed');
     }
 }
+// Test classes fix it with setup
+// Check custom metadata and setting

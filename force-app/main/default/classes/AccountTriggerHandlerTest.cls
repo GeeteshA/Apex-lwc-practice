@@ -1,37 +1,35 @@
 @IsTest
 private class AccountTriggerHandlerTest {
     @TestSetup
-    static void makeData() {
-        List<Account> accounts = new List<Account>();
-        for(Integer i = 1; i <= 5; i++) {
-            accounts.add(new Account(Name = 'Test Account ' + i));
-        }
+    static void setup() {
+        // Create accounts with different name patterns
+        List<Account> accounts = new List<Account>{
+            new Account(Name = 'Test Account 1'),
+            new Account(Name = 'Special & Account'),
+            new Account(Name = 'Account with 123 numbers')
+        };
         insert accounts;
     }
     
     @IsTest
-    static void shouldCreateContactForEachAccount() {
-        // Query accounts WITH the Name field
+    static void testContactCreationForMultipleAccounts() {
         List<Account> accounts = [SELECT Id, Name FROM Account];
+        Integer accountCount = accounts.size();
         
         Test.startTest();
-        // Trigger already fired in setup, so we need to query contacts
+        // Trigger runs in setup, verify results
         Test.stopTest();
         
-        // Query contacts and related account names
-        List<Contact> contacts = [SELECT Id, AccountId, LastName, 
-                                 Account.Name FROM Contact 
-                                 WHERE AccountId IN :accounts];
+        List<Contact> contacts = [SELECT Id, LastName, AccountId FROM Contact];
+        System.assertEquals(accountCount, contacts.size(), 
+            'Should create one contact per account');
         
-        System.assertEquals(accounts.size(), contacts.size(), 
-            'Number of contacts should match number of accounts');
-        
-        // Create map for easier verification
+        // Verify special characters are handled
         Map<Id, Account> accountMap = new Map<Id, Account>(accounts);
-        
         for(Contact c : contacts) {
-            System.assertEquals(accountMap.get(c.AccountId).Name, c.LastName,
-                'Contact last name should match account name');
+            Account acc = accountMap.get(c.AccountId);
+            System.assertEquals(acc.Name, c.LastName,
+                'Contact last name should exactly match account name');
         }
     }
 }

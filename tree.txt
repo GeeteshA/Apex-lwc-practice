@@ -21,29 +21,19 @@ sf project deploy start -d force-app/main/default/classes
 sf project deploy start -d force-app/main/default/triggers
 sf project deploy start -d force-app/main/default/lwc
 
-
-
+AccountTriggerHandlerTest
     @IsTest
-    static void testBulkContactOperations() {
-        // Create test account
-        Account testAccount = new Account(Name = 'Bulk Test Account');
-        insert testAccount;
-        
-        // Create 200 contacts
-        List<Contact> contacts = new List<Contact>();
-        for(Integer i = 1; i <= 200; i++) {
-            contacts.add(new Contact(
-                FirstName = 'Bulk',
-                LastName = 'Contact ' + i,
-                AccountId = testAccount.Id
-            ));
+    static void testBulkAccountInsert() {
+        // Test bulk insert (200 records)
+        List<Account> bulkAccounts = new List<Account>();
+        for(Integer i = 0; i < 200; i++) {
+            bulkAccounts.add(new Account(Name = 'Bulk Account ' + i));
         }
         
         Test.startTest();
-        insert contacts;
+        insert bulkAccounts;
         Test.stopTest();
         
-        // Verify bulk insert count
-        Account afterBulkInsert = [SELECT Number_of_Contacts__c FROM Account WHERE Id = :testAccount.Id];
-        System.assertEquals(200, afterBulkInsert.Number_of_Contacts__c, 'Should handle bulk insert');
+        System.assertEquals(200, [SELECT COUNT() FROM Contact], 
+            'Should create contacts for all bulk accounts');
     }

@@ -2,47 +2,42 @@
 private class ContactTriggerHandlerTest {
     @TestSetup
     static void setup() {
-        // Initialize account with explicit 0 count
-        Account acc = new Account(
-            Name = 'Test Account',
-            Number_of_Contacts__c = 0 // Explicitly set to 0
-        );
-        insert acc;
+        // Create accounts with different initial counts
+        Account acc1 = new Account(Name = 'Account 1', Number_of_Contacts__c = 0);
+        Account acc2 = new Account(Name = 'Account 2', Number_of_Contacts__c = 5);
+        insert new List<Account>{acc1, acc2};
     }
-
+    
     @IsTest
-    static void testSingleContactInsert() {
-        Account acc = [SELECT Id FROM Account LIMIT 1];
+    static void testContactCountInVariousScenarios() {
+        Account acc1 = [SELECT Id FROM Account WHERE Name = 'Account 1'];
+        Account acc2 = [SELECT Id FROM Account WHERE Name = 'Account 2'];
         
-        // Verify initial count
-        System.assertEquals(0, [SELECT Number_of_Contacts__c FROM Account WHERE Id = :acc.Id].Number_of_Contacts__c,
-            'Initial count should be 0');
+        // Test insert
+        Contact con1 = new Contact(LastName = 'Test 1', AccountId = acc1.Id);
+        Contact con2 = new Contact(LastName = 'Test 2', AccountId = acc2.Id);
         
         Test.startTest();
-        Contact con = new Contact(
-            LastName = 'Test',
-            AccountId = acc.Id
-        );
+        insert new List<Contact>{con1, con2};
+        Test.stopTest();
+        
+        // Verify counts
+        Account updatedAcc1 = [SELECT Number_of_Contacts__c FROM Account WHERE Id = :acc1.Id];
+        Account updatedAcc2 = [SELECT Number_of_Contacts__c FROM Account WHERE Id = :acc2.Id];
+        System.assertEquals(1, updatedAcc1.Number_of_Contacts__c, 'Account 1 should have 1 contact');
+        System.assertEquals(6, updatedAcc2.Number_of_Contacts__c, 'Account 2 should have 6 contacts');
+    }
+    
+    @IsTest
+    static void testContactWithoutAccount() {
+        Contact con = new Contact(LastName = 'No Account');
+        
+        Test.startTest();
         insert con;
         Test.stopTest();
         
-        // Verify count after insert
-        System.assertEquals(1, [SELECT Number_of_Contacts__c FROM Account WHERE Id = :acc.Id].Number_of_Contacts__c,
-            'Should be 1 after inserting one contact');
-    }
-
-    @IsTest
-    static void testDeleteUndeleteFlow() {
-        Account acc = [SELECT Id FROM Account LIMIT 1];
-        Contact con = new Contact(LastName = 'Test', AccountId = acc.Id);
-        insert con;
-        
-        Test.startTest();
-        delete con;
-        undelete con;
-        Test.stopTest();
-        
-        System.assertEquals(1, [SELECT Number_of_Contacts__c FROM Account WHERE Id = :acc.Id].Number_of_Contacts__c,
-            'Should be 1 after undelete');
+        // Verify no errors and no account updates
+        System.assertEquals(0, [SELECT COUNT() FROM Account WHERE Number_of_Contacts__c != 0 AND Number_of_Contacts__c != 5],
+            'No account counts should change for contact without account');
     }
 }

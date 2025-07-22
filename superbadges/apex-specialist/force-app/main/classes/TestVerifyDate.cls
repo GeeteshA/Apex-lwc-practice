@@ -1,5 +1,5 @@
 @isTest
-private class VerifyDateTest {
+private class TestVerifyDate {
     
     @isTest
     static void testDateWithinRange() {

@@ -6,6 +6,7 @@ public class ClosedOpportunityTriggerTest {
         Account acc = new Account(Name = 'Test Account');
         insert acc;
 
+        // Opportunity inserted as 'Closed Won' directly
         Opportunity opp1 = new Opportunity(
             Name = 'Opp Insert Closed Won',
             StageName = 'Closed Won',
@@ -14,6 +15,7 @@ public class ClosedOpportunityTriggerTest {
             AccountId = acc.Id
         );
 
+        // Opportunity inserted with non-Closed stage
         Opportunity opp2 = new Opportunity(
             Name = 'Opp Insert Not Closed',
             StageName = 'Prospecting',
@@ -28,26 +30,32 @@ public class ClosedOpportunityTriggerTest {
     @isTest
     static void testInsertClosedWonCreatesTask() {
         Opportunity opp = [SELECT Id FROM Opportunity WHERE StageName = 'Closed Won' LIMIT 1];
-        Task t = [SELECT Id, WhatId FROM Task WHERE WhatId = :opp.Id LIMIT 1];
-        System.assertEquals(opp.Id, t.WhatId, 'Task should be related to Closed Won Opportunity');
+
+        List<Task> tasks = [SELECT Id, WhatId FROM Task WHERE WhatId = :opp.Id];
+        System.assertEquals(1, tasks.size(), 'Should create 1 Task when Opportunity is inserted as Closed Won');
+        System.assertEquals(opp.Id, tasks[0].WhatId, 'Task should be related to Opportunity');
     }
 
     @isTest
     static void testUpdateToClosedWonCreatesTask() {
         Opportunity opp = [SELECT Id, StageName FROM Opportunity WHERE StageName = 'Prospecting' LIMIT 1];
+        
+        // Update stage to Closed Won
         opp.StageName = 'Closed Won';
         update opp;
 
         List<Task> tasks = [SELECT Id FROM Task WHERE WhatId = :opp.Id];
-        System.assertEquals(1, tasks.size(), 'One task should be created when Stage updated to Closed Won');
+        System.assertEquals(1, tasks.size(), 'Task should be created when Opportunity is updated to Closed Won');
     }
 
     @isTest
-    static void testNoTaskForUnchangedClosedWon() {
+    static void testNoDuplicateTaskForUnchangedClosedWon() {
         Opportunity opp = [SELECT Id, StageName FROM Opportunity WHERE StageName = 'Closed Won' LIMIT 1];
-        update opp; // re-update without changing stage
+        
+        Integer taskCountBefore = [SELECT COUNT() FROM Task WHERE WhatId = :opp.Id];
+        update opp; // No stage change
+        Integer taskCountAfter = [SELECT COUNT() FROM Task WHERE WhatId = :opp.Id];
 
-        List<Task> tasks = [SELECT Id FROM Task WHERE WhatId = :opp.Id];
-        System.assertEquals(1, tasks.size(), 'No additional task should be created on unchanged Closed Won');
+        System.assertEquals(taskCountBefore, taskCountAfter, 'No additional task should be created when stage remains Closed Won');
     }
 }

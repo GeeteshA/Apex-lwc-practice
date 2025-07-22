@@ -1,3 +1,8 @@
 trigger ClosedOpportunityTrigger on Opportunity (after insert, after update) {
-    OpportunityTriggerHandler.handleAfterInsertUpdate(Trigger.new, Trigger.oldMap, Trigger.isInsert);
+    if (Trigger.isInsert) {
+        ClosedOpportunityTriggerHandler.onAfterInsert(Trigger.new);
+    }
+    if (Trigger.isUpdate) {
+        ClosedOpportunityTriggerHandler.onAfterUpdate(Trigger.new, Trigger.oldMap);
+    }
 }
